@@ -2,6 +2,7 @@
 
 namespace League\Glide\Api;
 
+use Intervention\Image\EncodedImage;
 use Intervention\Image\ImageManager;
 use League\Glide\Manipulators\ManipulatorInterface;
 
@@ -91,7 +92,7 @@ class Api implements ApiInterface
      *
      * @return string Manipulated image binary data.
      */
-    public function run($source, array $params)
+    public function run($source, array $params): EncodedImage
     {
         $image = $this->imageManager->read($source);
 
@@ -101,6 +102,6 @@ class Api implements ApiInterface
             $image = $manipulator->run($image);
         }
 
-        return $image->encodeByMediaType()->toString();
+        return $image->encodeByMediaType();
     }
 }
