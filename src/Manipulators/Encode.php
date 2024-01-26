@@ -34,7 +34,6 @@ class Encode extends BaseManipulator
                 ->place($image, 'top-left', 0, 0);
         }
 
-
         if (in_array($format, ['png', 'pjpg'], true)) {
             $shouldInterlace = true;
 
