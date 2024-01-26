@@ -25,6 +25,7 @@ class Encode extends BaseManipulator
         $format = $this->getFormat($image);
         $quality = $this->getQuality();
         $driver = $image->driver();
+        $shouldInterlace = false;
 
         if (in_array($format, ['jpg', 'pjpg'], true)) {
             $image = (new ImageManager($driver))
@@ -33,22 +34,23 @@ class Encode extends BaseManipulator
                 ->place($image, 'top-left', 0, 0);
         }
 
+
         if (in_array($format, ['png', 'pjpg'], true)) {
-            $i = $image->core()->native();
-            if ($driver instanceof ImagickDriver) {
-                $i->setInterlaceScheme(3); // 3 = Imagick::INTERLACE_PLANE constant
-            } elseif ($driver instanceof GdDriver) {
-                imageinterlace($i, true);
-            }
+            $shouldInterlace = true;
 
             if ('pjpg' === $format) {
                 $format = 'jpg';
             }
         }
 
-        return (new ImageManager($driver))->read(
-            $image->encodeByExtension($format, $quality)->toFilePointer()
+        $image = (new ImageManager($driver))->read(
+            $image->encodeByExtension($format, $quality)->toString()
         );
+        if ($shouldInterlace) {
+            $image = $this->interlace($image, $driver);
+        }
+
+        return $image;
     }
 
     /**
@@ -103,5 +105,18 @@ class Encode extends BaseManipulator
         }
 
         return (int) $this->q;
+    }
+
+    private function interlace(ImageInterface $image, $driver)
+    {
+        $i = $image->core()->native();
+
+        if ($driver instanceof ImagickDriver) {
+            $i->setInterlaceScheme(3); // 3 = Imagick::INTERLACE_PLANE constant
+        } elseif ($driver instanceof GdDriver) {
+            imageinterlace($i, true);
+        }
+
+        return $image;
     }
 }
